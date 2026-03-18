@@ -82,14 +82,17 @@ export default function App() {
         </div>
       </div>
 
-      {/* Desktop Page Selector */}
+      {/* Desktop Page Selector — vertical, right side */}
       <div
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full"
+        className="fixed flex flex-col items-stretch gap-1.5 px-3 py-3 rounded-2xl"
         style={{
-          background: "rgba(255,255,255,0.12)",
+          top: "50%",
+          transform: "translateX(0) translateY(-50%)",
+          left: `calc(50% + ${393 / 2 + 20}px)`,
+          background: "rgba(255,255,255,0.08)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.15)",
+          border: "1px solid rgba(255,255,255,0.12)",
           boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
           zIndex: 200,
         }}
