@@ -18,8 +18,9 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
   const dayActive = current === "day-dashboard" || current === "day-ai";
 
   return (
-    {/* 👇 核心修改：加入了 absolute bottom-0 left-0 w-full z-50 强制沉底覆盖 */}
     <div className="absolute bottom-0 left-0 w-full flex flex-col items-center z-50" style={{ paddingBottom: 0 }}>
+      {/* 核心修改说明：以上加入了 absolute 等属性强制沉底 */}
+      
       {/* Full-width transparent bar */}
       <div
         style={{
