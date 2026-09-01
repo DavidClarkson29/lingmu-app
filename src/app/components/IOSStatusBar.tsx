@@ -4,8 +4,8 @@ interface IOSStatusBarProps {
 
 export function IOSStatusBar({ mode }: IOSStatusBarProps) {
   const isNight = mode === "night";
-  const fg = isNight ? "#fff" : "#000";
-  const fgOp = isNight ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.88)";
+  const fg = isNight ? "#FFFFFF" : "#111111";
+  const fgOp = isNight ? "rgba(255,255,255,0.96)" : "rgba(17,17,17,0.96)";
 
   return (
     <div
@@ -14,9 +14,9 @@ export function IOSStatusBar({ mode }: IOSStatusBarProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingLeft: 28,
-        paddingRight: 22,
-        paddingTop: 14,
+        paddingLeft: 34,
+        paddingRight: 28,
+        paddingTop: 8,
         position: "relative",
         zIndex: 50,
         flexShrink: 0,
@@ -39,74 +39,86 @@ export function IOSStatusBar({ mode }: IOSStatusBarProps) {
       {/* Spacer */}
       <div style={{ width: 100, flexShrink: 0 }} />
 
-      {/* Right: Cellular + WiFi + Battery — pixel-accurate iOS 17 style */}
+      {/* Right: Cellular + Wi-Fi + Battery — iOS status indicators */}
       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        {/* Cellular — 4 bars, iOS style */}
-        <svg width="17" height="12" viewBox="0 0 17 12">
-          <rect x="0" y="9" width="3" height="3" rx="0.5" fill={fg} opacity={0.4} />
-          <rect x="4.5" y="6" width="3" height="6" rx="0.5" fill={fg} opacity={0.55} />
-          <rect x="9" y="3" width="3" height="9" rx="0.5" fill={fg} opacity={0.8} />
-          <rect x="13.5" y="0" width="3" height="12" rx="0.5" fill={fg} opacity={1} />
+        {/* Cellular — four ascending rounded bars */}
+        <svg
+          aria-hidden="true"
+          width="18"
+          height="12"
+          viewBox="0 0 18 12"
+          style={{ display: "block", flexShrink: 0 }}
+        >
+          <rect x="0" y="9" width="3" height="3" rx="0.8" fill={fg} opacity="0.48" />
+          <rect x="5" y="6" width="3" height="6" rx="0.8" fill={fg} opacity="0.68" />
+          <rect x="10" y="3" width="3" height="9" rx="0.8" fill={fg} opacity="0.88" />
+          <rect x="15" y="0" width="3" height="12" rx="0.8" fill={fg} />
         </svg>
 
-        {/* WiFi — iOS 17 concentric arcs */}
-        <svg width="16" height="12" viewBox="0 0 16 12">
+        {/* Wi-Fi — every stroke stays inside the viewBox to prevent clipping */}
+        <svg
+          aria-hidden="true"
+          width="17"
+          height="12"
+          viewBox="0 0 17 12"
+          style={{ display: "block", flexShrink: 0, overflow: "visible" }}
+        >
           <path
-            d="M8 10.8a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Z"
-            fill={fg}
-          />
-          <path
-            d="M5.17 7.6a3.8 3.8 0 0 1 5.66 0"
+            d="M1.05 3.45C5.18 0.05 11.82 0.05 15.95 3.45"
             stroke={fg}
-            strokeWidth="1.4"
+            strokeWidth="1.65"
             strokeLinecap="round"
             fill="none"
           />
           <path
-            d="M2.52 4.9a7.2 7.2 0 0 1 10.96 0"
+            d="M3.75 6.65C6.39 4.42 10.61 4.42 13.25 6.65"
             stroke={fg}
-            strokeWidth="1.4"
+            strokeWidth="1.65"
             strokeLinecap="round"
             fill="none"
           />
           <path
-            d="M0.2 2.4a10.2 10.2 0 0 1 15.6 0"
+            d="M6.42 9.52C7.59 8.53 9.41 8.53 10.58 9.52"
             stroke={fg}
-            strokeWidth="1.4"
+            strokeWidth="1.65"
             strokeLinecap="round"
             fill="none"
           />
+          <circle cx="8.5" cy="11" r="0.85" fill={fg} />
         </svg>
 
-        {/* Battery — iOS style with body + nub */}
-        <svg width="27" height="13" viewBox="0 0 27 13">
-          {/* Battery body outline */}
+        {/* Battery — rounded outline, charge fill and terminal */}
+        <svg
+          aria-hidden="true"
+          width="27"
+          height="13"
+          viewBox="0 0 27 13"
+          style={{ display: "block", flexShrink: 0 }}
+        >
           <rect
             x="0.5"
             y="0.5"
             width="22"
             height="12"
-            rx="3.5"
+            rx="3.25"
             stroke={fg}
             strokeWidth="1"
             fill="none"
-            opacity={isNight ? 0.4 : 0.35}
+            opacity={isNight ? 0.42 : 0.38}
           />
-          {/* Battery fill */}
           <rect
             x="2"
             y="2"
-            width="17"
+            width="18.5"
             height="9"
-            rx="2"
+            rx="2.15"
             fill={fg}
-            opacity={isNight ? 0.9 : 0.85}
+            opacity={isNight ? 0.94 : 0.92}
           />
-          {/* Battery nub */}
           <path
-            d="M24 4.5a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            d="M24 4.25c.72.25 1.2.94 1.2 1.75v1c0 .81-.48 1.5-1.2 1.75Z"
             fill={fg}
-            opacity={isNight ? 0.5 : 0.4}
+            opacity={isNight ? 0.5 : 0.42}
           />
         </svg>
       </div>

@@ -7,6 +7,7 @@ interface LiquidGlassProps {
   className?: string;
   borderRadius?: number;
   intensity?: "soft" | "medium" | "strong";
+  material?: "classic" | "liquid";
 }
 
 export function LiquidGlass({
@@ -16,8 +17,10 @@ export function LiquidGlass({
   className,
   borderRadius = 22,
   intensity = "medium",
+  material = "classic",
 }: LiquidGlassProps) {
   const isNight = mode === "night";
+  const isLiquid = material === "liquid";
 
   const blurMap = { soft: 24, medium: 40, strong: 56 };
   const blur = blurMap[intensity];
@@ -36,24 +39,27 @@ export function LiquidGlass({
   };
 
   const dayStyle: React.CSSProperties = {
-    background: `rgba(255, 255, 255, ${intensity === "strong" ? 0.72 : 0.58})`,
-    backdropFilter: `blur(${blur}px) saturate(180%) brightness(105%)`,
-    WebkitBackdropFilter: `blur(${blur}px) saturate(180%) brightness(105%)`,
-    border: "1px solid rgba(255, 255, 255, 0.82)",
+    background: isLiquid
+      ? "rgba(255,253,249,0.78)"
+      : `rgba(255, 253, 249, ${intensity === "strong" ? 0.9 : intensity === "medium" ? 0.82 : 0.74})`,
+    backdropFilter: `blur(${isLiquid ? blur + 8 : blur}px) saturate(118%)`,
+    WebkitBackdropFilter: `blur(${isLiquid ? blur + 8 : blur}px) saturate(118%)`,
+    border: "1px solid rgba(118,103,84,0.09)",
     boxShadow: [
-      "0 2px 0 rgba(255, 255, 255, 0.95) inset",
-      "0 -0.5px 0 rgba(0, 0, 0, 0.04) inset",
-      `0 ${intensity === "strong" ? 16 : 8}px ${intensity === "strong" ? 40 : 24}px rgba(0, 0, 0, 0.09)`,
-      "0 1px 3px rgba(0, 0, 0, 0.05)",
+      "0 1px 0 rgba(255,255,255,0.8) inset",
+      "0 -1px 0 rgba(74,65,54,0.025) inset",
+      isLiquid ? "0 10px 28px rgba(73,64,52,0.065)" : `0 ${intensity === "strong" ? 12 : 7}px ${intensity === "strong" ? 32 : 22}px rgba(73,64,52,0.055)`,
     ].join(", "),
   };
 
   return (
     <div
       className={className}
+      data-material={material}
       style={{
         position: "relative",
         overflow: "hidden",
+        isolation: "isolate",
         borderRadius,
         ...(isNight ? nightStyle : dayStyle),
         ...style,
@@ -66,10 +72,10 @@ export function LiquidGlass({
           top: 0,
           left: 0,
           right: 0,
-          height: 1,
+          height: isLiquid ? 1.5 : 1,
           background: isNight
             ? "linear-gradient(90deg, transparent 8%, rgba(140,195,255,0.55) 25%, rgba(200,230,255,0.7) 50%, rgba(140,195,255,0.55) 75%, transparent 92%)"
-            : "linear-gradient(90deg, transparent 8%, rgba(255,255,255,0.85) 25%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.85) 75%, transparent 92%)",
+            : "rgba(255,255,255,0.72)",
           pointerEvents: "none",
           zIndex: 10,
         }}
@@ -84,13 +90,13 @@ export function LiquidGlass({
           height: "45%",
           background: isNight
             ? "linear-gradient(to bottom, rgba(100,150,255,0.06), transparent)"
-            : "linear-gradient(to bottom, rgba(255,255,255,0.18), transparent)",
+            : "transparent",
           pointerEvents: "none",
           zIndex: 0,
           borderRadius: `${borderRadius}px ${borderRadius}px 0 0`,
         }}
       />
-      <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
+      <div style={{ position: "relative", zIndex: 1, height: "100%" }}>{children}</div>
     </div>
   );
 }

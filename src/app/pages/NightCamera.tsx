@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { IOSStatusBar } from "../components/IOSStatusBar";
 import { LiquidGlass } from "../components/LiquidGlass";
-import { HomeIndicator } from "../components/HomeIndicator";
+import { Check, MoonStar } from "lucide-react";
+import { SFSymbol } from "../components/SFSymbol";
 
 type Page = "night-input" | "night-camera" | "profile" | "day-dashboard" | "day-ai";
 
@@ -12,10 +12,15 @@ interface NightCameraProps {
 export function NightCamera({ onNavigate }: NightCameraProps) {
   const [mode, setMode] = useState<"photo" | "video" | "slow">("photo");
   const [isCapturing, setIsCapturing] = useState(false);
+  const [captureSaved, setCaptureSaved] = useState(false);
 
   const handleCapture = () => {
     setIsCapturing(true);
-    setTimeout(() => setIsCapturing(false), 600);
+    setTimeout(() => {
+      setIsCapturing(false);
+      setCaptureSaved(true);
+      setTimeout(() => setCaptureSaved(false), 1800);
+    }, 600);
   };
 
   return (
@@ -23,8 +28,8 @@ export function NightCamera({ onNavigate }: NightCameraProps) {
       className="relative w-full h-full overflow-hidden flex flex-col"
       style={{ background: "#000000" }}
     >
-      {/* iOS Status Bar */}
-      <IOSStatusBar mode="night" />
+      {/* Persistent iOS status bar is rendered by the app shell. */}
+      <div aria-hidden="true" style={{ height: 54, flexShrink: 0 }} />
 
       {/* Top Bar */}
       <div className="relative z-20 flex items-center justify-between px-5 py-2 shrink-0">
@@ -52,19 +57,23 @@ export function NightCamera({ onNavigate }: NightCameraProps) {
         </button>
       </div>
 
-      {/* AI label */}
+      {/* Quiet capture label — analysis is intentionally deferred until daytime */}
       <div className="relative z-20 px-5 mt-1 shrink-0">
         <LiquidGlass mode="night" borderRadius={20} intensity="soft" style={{ display: "inline-block" }}>
           <span
+            className="flex items-center gap-1.5"
             style={{
-              color: "rgba(120,180,255,0.85)",
+              color: captureSaved ? "rgba(172,215,190,0.9)" : "rgba(120,180,255,0.72)",
               fontSize: 11,
               padding: "4px 12px",
-              display: "block",
+            display: "inline-flex",
+            alignItems: "center",
+            whiteSpace: "nowrap",
               letterSpacing: 0.5,
             }}
           >
-            ✦ AI 识别中...
+            <SFSymbol icon={captureSaved ? Check : MoonStar} size={12} strokeWidth={1.65} />
+            {captureSaved ? "已收下，明早整理" : "只管捕捉，不必整理"}
           </span>
         </LiquidGlass>
       </div>
@@ -91,12 +100,6 @@ export function NightCamera({ onNavigate }: NightCameraProps) {
             <div style={{ width: 40, height: 40, border: "1px solid rgba(255,255,255,0.2)", borderRadius: 2 }} />
             <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 8, height: 8, border: "1px solid rgba(255,255,255,0.4)", borderRadius: "50%" }} />
           </div>
-        </div>
-
-        {/* Mock detected object */}
-        <div className="absolute" style={{ top: "28%", left: "25%", width: "50%", height: "44%", border: "1px solid rgba(80,160,255,0.35)", borderRadius: 4 }}>
-          <div style={{ position: "absolute", bottom: -22, left: 0, color: "rgba(100,170,255,0.7)", fontSize: 10, letterSpacing: 1 }}>杯子 · 92%</div>
-          <div style={{ position: "absolute", top: -1, right: -1, color: "rgba(100,170,255,0.7)", fontSize: 10, letterSpacing: 1, padding: "1px 6px", background: "rgba(30,80,160,0.3)", borderRadius: "0 4px 0 4px" }}>氛围 · 67%</div>
         </div>
 
         {/* Exposure indicator */}
@@ -175,7 +178,7 @@ export function NightCamera({ onNavigate }: NightCameraProps) {
           </div>
           <div style={{ height: 16 }} />
         </div>
-        <HomeIndicator mode="night" />
+        <div aria-hidden="true" style={{ height: 23 }} />
       </LiquidGlass>
     </div>
   );

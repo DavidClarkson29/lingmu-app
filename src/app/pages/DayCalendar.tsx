@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { IOSStatusBar } from "../components/IOSStatusBar";
 import { LiquidGlass } from "../components/LiquidGlass";
-import { HomeIndicator } from "../components/HomeIndicator";
 
 type Page = "night-input" | "night-camera" | "profile" | "day-dashboard" | "day-ai" | "day-calendar";
 
@@ -123,116 +121,112 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden flex flex-col"
-      style={{ background: "linear-gradient(160deg, #faf8f5 0%, #f4f2ef 100%)" }}
+      className="lm-day-page relative w-full h-full overflow-hidden flex flex-col"
+      style={{ background: "var(--lm-day-bg)" }}
     >
-      <IOSStatusBar mode="day" />
+      {/* Persistent iOS status bar is rendered by the app shell. */}
+      <div aria-hidden="true" style={{ height: 54, flexShrink: 0 }} />
 
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-2 shrink-0">
         <button
-          onClick={() => onNavigate("day-dashboard")}
-          className="flex items-center gap-1 transition-opacity hover:opacity-70"
+          aria-label="返回我的创作"
+          onClick={() => onNavigate("profile")}
+          className="transition-opacity hover:opacity-70"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M15 18l-6-6 6-6" stroke="rgba(0,0,0,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span style={{ color: "rgba(0,0,0,0.6)", fontSize: 15 }}>返回</span>
         </button>
-        <span style={{ color: "rgba(0,0,0,0.82)", fontSize: 17, fontWeight: 500 }}>灵感日历</span>
-        <div style={{ width: 50 }} />
+        <span style={{ color: "var(--lm-day-ink)", fontSize: 17, fontWeight: 500 }}>创作日历</span>
+        <div style={{ width: 22 }} />
       </div>
 
-      <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
-        {/* Calendar */}
-        <div className="px-4 mb-3">
-          <LiquidGlass mode="day" borderRadius={20} intensity="medium">
-            <div style={{ padding: "14px 16px 10px" }}>
-              <div className="flex items-center justify-between mb-3">
-                <button>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18l-6-6 6-6" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-                <div style={{ color: "rgba(0,0,0,0.8)", fontSize: 15, fontWeight: 500 }}>2026年 3月</div>
-                <button>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 18l6-6-6-6" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-              <div className="grid grid-cols-7 mb-1">
-                {WEEKDAYS.map((d) => (
-                  <div key={d} className="text-center py-1">
-                    <span style={{ color: "rgba(0,0,0,0.3)", fontSize: 11 }}>{d}</span>
+      <div className="flex-1 overflow-y-auto pt-2.5" style={{ minHeight: 0 }}>
+        {/* Compact month calendar + monthly overview */}
+        <div className="px-4 mb-3.5">
+          <LiquidGlass mode="day" borderRadius={20} intensity="medium" material="liquid">
+            <div className="grid" style={{ padding: "13px 14px", gap: 14, gridTemplateColumns: "1.58fr 1fr" }}>
+              <div className="min-w-0">
+                <div className="flex items-center justify-between" style={{ height: 22, marginBottom: 5 }}>
+                  <button aria-label="上个月" style={{ color: "rgba(0,0,0,0.34)" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg></button>
+                  <div style={{ color: "var(--lm-day-blue)", fontSize: 15, fontWeight: 550 }}>2026年 3月</div>
+                  <button aria-label="下个月" style={{ color: "rgba(0,0,0,0.34)" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg></button>
+                </div>
+                <div className="grid grid-cols-7" style={{ height: 18, marginBottom: 2 }}>
+                  {WEEKDAYS.map((day) => <div key={day} className="flex items-center justify-center"><span style={{ color: "rgba(72,76,75,0.38)", fontSize: 10 }}>{day}</span></div>)}
+                </div>
+                {CALENDAR_DAYS.map((week, weekIndex) => (
+                  <div key={weekIndex} className="grid grid-cols-7">
+                    {week.map((day, dayIndex) => {
+                      const hasRecord = day !== null && RECORD_DAYS.has(day);
+                      const isSelected = day === selectedDay;
+                      const isToday = day === 17;
+                      return (
+                        <div key={dayIndex} className="flex flex-col items-center justify-center" style={{ height: 21 }}>
+                          {day !== null && (
+                            <button
+                              onClick={() => setSelectedDay(day)}
+                              style={{ width: 20, height: 20, borderRadius: "50%", background: isSelected ? "rgba(29,35,41,0.86)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", border: !isSelected && isToday ? "1px solid rgba(0,0,0,0.18)" : "none", position: "relative" }}
+                            >
+                              <span style={{ color: isSelected ? "white" : "rgba(0,0,0,0.68)", fontSize: "var(--lm-type-caption)", fontWeight: isSelected ? 600 : 400 }}>{day}</span>
+                              {hasRecord && <span style={{ position: "absolute", width: 2.5, height: 2.5, borderRadius: "50%", background: isSelected ? "rgba(150,198,228,0.95)" : "rgba(184,149,80,0.66)", bottom: 1 }} />}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
-              {CALENDAR_DAYS.map((week, wi) => (
-                <div key={wi} className="grid grid-cols-7">
-                  {week.map((day, di) => {
-                    const hasRecord = day !== null && RECORD_DAYS.has(day);
-                    const isSelected = day === selectedDay;
-                    const isToday = day === 17;
-                    return (
-                      <div key={di} className="flex flex-col items-center justify-center py-0.5">
-                        {day !== null && (
-                          <>
-                            <button
-                              onClick={() => setSelectedDay(day)}
-                              style={{
-                                width: 32, height: 32, borderRadius: "50%",
-                                background: isSelected ? "rgba(0,0,0,0.82)" : "transparent",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                border: !isSelected && isToday ? "1.5px solid rgba(0,0,0,0.2)" : "none",
-                                transition: "all 0.2s",
-                              }}
-                            >
-                              <span style={{ color: isSelected ? "white" : "rgba(0,0,0,0.7)", fontSize: 13, fontWeight: isSelected ? 600 : 400 }}>
-                                {day}
-                              </span>
-                            </button>
-                            {hasRecord && (
-                              <div style={{ width: 4, height: 4, borderRadius: "50%", background: isSelected ? "rgba(100,160,220,0.9)" : "rgba(200,160,80,0.6)", marginTop: 1 }} />
-                            )}
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
+
+              <div style={{ borderLeft: "1px solid rgba(91,80,66,0.09)", paddingLeft: 13 }}>
+                <div style={{ color: "var(--lm-day-plum)", fontSize: 13, fontWeight: 550, marginBottom: 9 }}>3月概览</div>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-2.5">
+                  {[
+                    { value: "11", label: "活跃天", color: "#597687" },
+                    { value: "22", label: "灵感", color: "#B1843F" },
+                    { value: "沉思", label: "主要情绪", color: "#85708E" },
+                    { value: "22h", label: "高峰", color: "#6F8D79" },
+                  ].map((item) => (
+                    <div key={item.label} style={{ minWidth: 0 }}>
+                      <div className="flex items-end" style={{ height: 24, color: item.color, fontSize: 20, fontWeight: 600, lineHeight: 1 }}>{item.value}</div>
+                      <div style={{ color: "rgba(55,58,57,0.38)", fontSize: 10, lineHeight: 1.2, marginTop: 5, whiteSpace: "nowrap" }}>{item.label}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+                <div style={{ marginTop: 9, paddingTop: 7, borderTop: "1px solid rgba(91,80,66,0.07)", color: "rgba(89,118,135,0.58)", fontSize: 10 }}>夜间最活跃</div>
+              </div>
             </div>
           </LiquidGlass>
         </div>
 
         {/* Screen Time Style Bar Chart */}
-        <div className="px-4 mb-3">
-          <LiquidGlass mode="day" borderRadius={18} intensity="soft">
-            <div style={{ padding: "16px 16px 12px" }}>
+        <div className="px-4 mb-3.5">
+          <LiquidGlass mode="day" borderRadius={18} intensity="soft" material="liquid">
+            <div style={{ padding: "15px 16px 13px" }}>
               {/* Title + total */}
-              <div className="flex items-center justify-between mb-1">
-                <span style={{ color: "rgba(0,0,0,0.7)", fontSize: 14, fontWeight: 500 }}>思维活跃度</span>
-                <span style={{ color: "rgba(0,0,0,0.35)", fontSize: 12 }}>3月{selectedDay}日</span>
-              </div>
-              <div style={{ color: "rgba(0,0,0,0.82)", fontSize: 26, fontWeight: 600, marginBottom: 12 }}>
-                {records.length > 0 ? `${records.length} 条灵感` : "暂无记录"}
+              <div className="flex items-start justify-between mb-3">
+                <div><div style={{ color: "var(--lm-day-blue)", fontSize: 14, fontWeight: 550 }}>思维活跃度</div><div style={{ color: "rgba(55,58,57,0.36)", fontSize: 11, marginTop: 3 }}>3月{selectedDay}日 · 19:00—00:00</div></div>
+                <div className="flex items-baseline gap-1" style={{ color: "var(--lm-day-gold)" }}>
+                  <span style={{ fontSize: 24, fontWeight: 620, lineHeight: 1 }}>{records.length}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500 }}>条记录</span>
+                </div>
               </div>
 
               {/* Bar chart area */}
-              <div style={{ position: "relative", height: 140, marginBottom: 4 }}>
+              <div style={{ position: "relative", height: 82, marginBottom: 2 }}>
                 {/* Y-axis grid lines & labels */}
                 {[0, Math.ceil(chartMax / 2), chartMax].map((val, i) => (
-                  <div key={i} style={{ position: "absolute", left: 0, right: 28, bottom: `${(val / chartMax) * 100}%`, display: "flex", alignItems: "center" }}>
+                  <div key={i} style={{ position: "absolute", left: 0, right: 0, bottom: `${(val / chartMax) * 100}%`, display: "flex", alignItems: "center" }}>
                     <div style={{ flex: 1, height: 1, background: "rgba(0,0,0,0.06)", borderStyle: i === 0 ? "solid" : "dashed", borderWidth: i === 0 ? "0 0 1px 0" : 0, borderColor: "rgba(0,0,0,0.06)" }}>
                       {i > 0 && <div style={{ width: "100%", height: 0, borderTop: "1px dashed rgba(0,0,0,0.08)" }} />}
                     </div>
-                    <span style={{ color: "rgba(0,0,0,0.25)", fontSize: 10, width: 24, textAlign: "right", marginLeft: 4 }}>{val}</span>
                   </div>
                 ))}
 
                 {/* Bars */}
-                <div className="flex items-end justify-around" style={{ position: "absolute", bottom: 0, left: 0, right: 28, top: 0 }}>
+                <div className="flex items-end justify-around" style={{ position: "absolute", bottom: 0, left: 0, right: 0, top: 0 }}>
                   {barData.map((bar, bi) => {
                     const barHeight = bar.total > 0 ? (bar.total / chartMax) * 100 : 0;
                     // Build stacked segments
@@ -247,7 +241,7 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
                         {bar.total > 0 ? (
                           <div
                             style={{
-                              width: 24,
+                              width: 20,
                               height: `${barHeight}%`,
                               borderRadius: 4,
                               overflow: "hidden",
@@ -269,7 +263,7 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
                             ))}
                           </div>
                         ) : (
-                          <div style={{ width: 24, height: 0 }} />
+                          <div style={{ width: 20, height: 0 }} />
                         )}
                       </div>
                     );
@@ -278,10 +272,10 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
               </div>
 
               {/* X-axis hour labels */}
-              <div className="flex justify-around" style={{ paddingRight: 28 }}>
+              <div className="flex justify-around">
                 {CHART_HOURS.map((h) => (
                   <div key={h} style={{ flex: 1, textAlign: "center" }}>
-                    <span style={{ color: "rgba(0,0,0,0.3)", fontSize: 10 }}>
+                    <span style={{ color: "rgba(55,58,57,0.34)", fontSize: 10 }}>
                       {h === 0 ? "0时" : `${h}时`}
                     </span>
                   </div>
@@ -289,16 +283,14 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
               </div>
 
               {/* Separator */}
-              <div style={{ height: 1, background: "rgba(0,0,0,0.06)", margin: "12px 0" }} />
+              <div style={{ height: 1, background: "rgba(0,0,0,0.06)", margin: "8px 0 7px" }} />
 
               {/* Category legend — Apple Screen Time style */}
               <div className="flex justify-around">
                 {MOOD_CATEGORIES.map((cat) => (
-                  <div key={cat.key} className="flex flex-col items-center">
-                    <span style={{ color: cat.color, fontSize: 13, fontWeight: 600 }}>{cat.label}</span>
-                    <span style={{ color: "rgba(0,0,0,0.45)", fontSize: 12, marginTop: 2 }}>
-                      {categoryCounts[cat.key] || 0} 条
-                    </span>
+                  <div key={cat.key} className="flex items-center gap-1.5">
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: cat.color }} />
+                    <span style={{ color: cat.color, fontSize: 11, fontWeight: 500 }}>{cat.label} {categoryCounts[cat.key] || 0}</span>
                   </div>
                 ))}
               </div>
@@ -307,12 +299,12 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
         </div>
 
         {/* Records for selected day */}
-        <div className="px-4 mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <span style={{ color: "rgba(0,0,0,0.55)", fontSize: 13, fontWeight: 500 }}>
+        <div className="px-4 mb-3.5">
+          <div className="flex items-center justify-between mb-2.5">
+            <span style={{ color: "var(--lm-day-plum)", fontSize: 14, fontWeight: 550 }}>
               3月{selectedDay}日的灵感
             </span>
-            <span style={{ color: "rgba(100,140,200,0.8)", fontSize: 12 }}>
+            <span style={{ color: "rgba(100,140,200,0.8)", fontSize: "var(--lm-type-support)" }}>
               {records.length}条
             </span>
           </div>
@@ -323,35 +315,34 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 8, opacity: 0.3 }}>
                   <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" fill="none" />
                 </svg>
-                <span style={{ color: "rgba(0,0,0,0.25)", fontSize: 13 }}>这天还没有灵感记录</span>
-                <span style={{ color: "rgba(0,0,0,0.18)", fontSize: 11, marginTop: 4 }}>夜间模式下捕捉你的灵感吧</span>
+                <span style={{ color: "rgba(0,0,0,0.25)", fontSize: "var(--lm-type-body)" }}>这天还没有灵感记录</span>
+                <span style={{ color: "rgba(0,0,0,0.18)", fontSize: "var(--lm-type-support)", marginTop: 5 }}>夜间模式下捕捉你的灵感吧</span>
               </div>
             </LiquidGlass>
           ) : (
             records.map((record, i) => (
               <div key={i} className="mb-2">
-                <LiquidGlass mode="day" borderRadius={16} intensity="soft">
-                  <div className="flex items-center gap-3 py-3 px-4">
-                    <div className="flex flex-col items-center shrink-0" style={{ width: 36 }}>
-                      <span style={{ color: "rgba(0,0,0,0.6)", fontSize: 13, fontWeight: 500 }}>{record.time.split(":")[0]}</span>
-                      <span style={{ color: "rgba(0,0,0,0.3)", fontSize: 10 }}>:{record.time.split(":")[1]}</span>
+                <LiquidGlass mode="day" borderRadius={16} intensity="soft" material="liquid">
+                  <div className="flex items-center gap-3" style={{ padding: "11px 13px" }}>
+                    <div className="flex items-center shrink-0" style={{ width: 37 }}>
+                      <span style={{ color: "rgba(0,0,0,0.52)", fontSize: "var(--lm-type-support)", fontWeight: 500 }}>{record.time}</span>
                     </div>
-                    <div style={{ width: 1.5, height: 32, borderRadius: 1, background: MOOD_COLORS[record.mood] || "rgba(100,160,220,0.5)" }} />
+                    <div style={{ width: 2, height: 27, borderRadius: 1, background: MOOD_COLORS[record.mood] || "rgba(100,160,220,0.5)" }} />
                     <div className="flex-1 min-w-0">
-                      <div style={{ color: "rgba(0,0,0,0.75)", fontSize: 14, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <div style={{ color: "rgba(0,0,0,0.72)", fontSize: "var(--lm-type-body)", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {record.title}
                       </div>
                       <div className="flex items-center gap-2">
                         <span
                           style={{
-                            fontSize: 10, padding: "1px 8px", borderRadius: 10,
+                            fontSize: "var(--lm-type-caption)", padding: "2px 7px", borderRadius: 9,
                             background: `${MOOD_COLORS[record.mood]?.replace("0.8", "0.12") || "rgba(100,160,220,0.12)"}`,
                             color: MOOD_COLORS[record.mood] || "rgba(100,160,220,0.8)",
                           }}
                         >
                           {record.mood}
                         </span>
-                        <span style={{ color: "rgba(0,0,0,0.3)", fontSize: 10 }}>{record.type}</span>
+                        <span style={{ color: "rgba(0,0,0,0.3)", fontSize: "var(--lm-type-caption)" }}>{record.type}</span>
                       </div>
                     </div>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -364,37 +355,10 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
           )}
         </div>
 
-        {/* Monthly summary */}
-        <div className="px-4 mb-3">
-          <LiquidGlass mode="day" borderRadius={18} intensity="soft">
-            <div style={{ padding: "14px 16px" }}>
-              <span style={{ color: "rgba(0,0,0,0.55)", fontSize: 13, fontWeight: 500 }}>3月概览</span>
-              <div className="flex justify-between mt-3">
-                <div className="flex flex-col items-center">
-                  <span style={{ color: "rgba(0,0,0,0.75)", fontSize: 22, fontWeight: 600 }}>11</span>
-                  <span style={{ color: "rgba(0,0,0,0.35)", fontSize: 10, marginTop: 2 }}>活跃天数</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span style={{ color: "rgba(0,0,0,0.75)", fontSize: 22, fontWeight: 600 }}>22</span>
-                  <span style={{ color: "rgba(0,0,0,0.35)", fontSize: 10, marginTop: 2 }}>灵感总数</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span style={{ color: "rgba(0,0,0,0.75)", fontSize: 22, fontWeight: 600 }}>沉思</span>
-                  <span style={{ color: "rgba(0,0,0,0.35)", fontSize: 10, marginTop: 2 }}>主要情绪</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span style={{ color: "rgba(0,0,0,0.75)", fontSize: 22, fontWeight: 600 }}>22h</span>
-                  <span style={{ color: "rgba(0,0,0,0.35)", fontSize: 10, marginTop: 2 }}>高峰时段</span>
-                </div>
-              </div>
-            </div>
-          </LiquidGlass>
-        </div>
-
         <div className="h-4" />
       </div>
 
-      <HomeIndicator mode="day" />
+      <div aria-hidden="true" style={{ height: 23 }} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import { HomeIndicator } from "./HomeIndicator";
+import { Moon, Sun, UserRound } from "lucide-react";
+import { SFSymbol } from "./SFSymbol";
 
 type Page = "night-input" | "night-camera" | "profile" | "day-dashboard" | "day-ai";
 
@@ -11,14 +12,14 @@ interface FloatingTabBarProps {
 export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProps) {
   const isNight = mode === "night";
   const isNightInput = current === "night-input";
-  const activeColor = isNight ? "rgba(160,200,255,1)" : "rgba(70,130,180,1)";
-  const inactiveColor = isNight ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.3)";
+  const activeColor = isNight ? "rgba(160,200,255,1)" : "#557486";
+  const inactiveColor = isNight ? "rgba(255,255,255,0.35)" : "rgba(69,68,64,0.32)";
   const nightActive = current === "night-input" || current === "night-camera";
   const profileActive = current === "profile";
   const dayActive = current === "day-dashboard" || current === "day-ai";
 
   return (
-    <div className="shrink-0 flex flex-col items-center" style={{ paddingBottom: 0 }}>
+    <div className="shrink-0 flex flex-col items-center" style={{ paddingBottom: 23 }}>
       {/* Full-width transparent bar */}
       <div
         style={{
@@ -29,14 +30,14 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
             ? "transparent"
             : isNight
               ? "rgba(255, 255, 255, 0.04)"
-              : "rgba(255, 255, 255, 0.15)",
+              : "rgba(248,245,239,0.78)",
           backdropFilter: isNightInput ? "none" : "blur(40px) saturate(160%)",
           WebkitBackdropFilter: isNightInput ? "none" : "blur(40px) saturate(160%)",
           borderTop: isNightInput
             ? "none"
             : isNight
               ? "1px solid rgba(255, 255, 255, 0.08)"
-              : "1px solid rgba(0, 0, 0, 0.06)",
+              : "1px solid rgba(91,80,66,0.09)",
         }}
       >
         {/* Top specular highlight */}
@@ -51,7 +52,7 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
               ? "transparent"
               : isNight
                 ? "linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 70%, transparent 90%)"
-                : "linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.4) 70%, transparent 90%)",
+                : "rgba(255,255,255,0.55)",
             pointerEvents: "none",
             zIndex: 10,
           }}
@@ -67,17 +68,7 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
             className="flex flex-col items-center gap-0.5"
             style={{ padding: "4px 16px" }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                stroke={nightActive ? activeColor : inactiveColor}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill={nightActive ? activeColor : "none"}
-                style={{ transition: "all 0.3s" }}
-              />
-            </svg>
+            <SFSymbol icon={Moon} size={24} color={nightActive ? activeColor : inactiveColor} strokeWidth={1.65} fill={nightActive ? activeColor : "none"} style={{ transition: "all 0.3s" }} />
             <div
               style={{
                 width: 4, height: 4, borderRadius: "50%",
@@ -93,22 +84,7 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
             className="flex flex-col items-center gap-0.5"
             style={{ padding: "4px 16px" }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <circle
-                cx="12" cy="8" r="4"
-                stroke={profileActive ? activeColor : inactiveColor}
-                strokeWidth="1.5"
-                fill={profileActive ? activeColor : "none"}
-                style={{ transition: "all 0.3s" }}
-              />
-              <path
-                d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
-                stroke={profileActive ? activeColor : inactiveColor}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                style={{ transition: "all 0.3s" }}
-              />
-            </svg>
+            <SFSymbol icon={UserRound} size={24} color={profileActive ? activeColor : inactiveColor} strokeWidth={1.65} style={{ transition: "all 0.3s" }} />
             <div
               style={{
                 width: 4, height: 4, borderRadius: "50%",
@@ -124,22 +100,7 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
             className="flex flex-col items-center gap-0.5"
             style={{ padding: "4px 16px" }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <circle
-                cx="12" cy="12" r="4"
-                stroke={dayActive ? activeColor : inactiveColor}
-                strokeWidth="1.5"
-                fill={dayActive ? activeColor : "none"}
-                style={{ transition: "all 0.3s" }}
-              />
-              <path
-                d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-                stroke={dayActive ? activeColor : inactiveColor}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                style={{ transition: "all 0.3s" }}
-              />
-            </svg>
+            <SFSymbol icon={Sun} size={24} color={dayActive ? activeColor : inactiveColor} strokeWidth={1.65} style={{ transition: "all 0.3s" }} />
             <div
               style={{
                 width: 4, height: 4, borderRadius: "50%",
@@ -151,7 +112,6 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
         </div>
       </div>
 
-      <HomeIndicator mode={mode} />
     </div>
   );
 }
