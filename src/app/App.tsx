@@ -13,7 +13,7 @@ import { MorningReview } from "./pages/MorningReview";
 import { IdeaDetail } from "./pages/IdeaDetail";
 import { IDEAS_STORAGE_KEY, INITIAL_IDEAS } from "./data/ideas";
 import type { Idea } from "./data/ideas";
-import { CalendarDays, Camera, ChevronDown, Eye, EyeOff, LogIn, Minus, Moon, Pencil, Plus, Settings2, Sparkles, Sun, Sunrise, UserRound } from "lucide-react";
+import { Bell, CalendarDays, Camera, ChevronDown, CloudUpload, Eye, EyeOff, FileDown, LogIn, Minus, Moon, Palette, Pencil, Plus, ShieldCheck, SlidersHorizontal, Sparkles, Sun, Sunrise, UserRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SFSymbol } from "./components/SFSymbol";
 import { IOSStatusBar } from "./components/IOSStatusBar";
@@ -27,7 +27,7 @@ const PRIMARY_TABS = new Set<Page>(["night-input", "profile", "day-dashboard"]);
 interface PageTransition {
   from: Page;
   to: Page;
-  kind: "push" | "fade" | "insight";
+  kind: "push" | "fade" | "insight" | "relaunch";
   direction: 1 | -1;
   active: boolean;
   duration: number;
@@ -40,6 +40,7 @@ interface PreviewNavChild {
   id: Page;
   icon: LucideIcon;
   label: string;
+  settingId?: SettingId;
 }
 
 interface PreviewNavGroup {
@@ -81,7 +82,13 @@ const PREVIEW_NAV: PreviewNavGroup[] = [
     children: [
       { id: "day-calendar", icon: CalendarDays, label: "创作日历" },
       { id: "profile-edit", icon: Pencil, label: "编辑资料" },
-      { id: "settings-detail", icon: Settings2, label: "设置详情" },
+      { id: "settings-detail", settingId: "capture", icon: SlidersHorizontal, label: "捕捉偏好" },
+      { id: "settings-detail", settingId: "reminders", icon: Bell, label: "温和提醒" },
+      { id: "settings-detail", settingId: "insights", icon: Sparkles, label: "日报与洞察" },
+      { id: "settings-detail", settingId: "appearance", icon: Palette, label: "外观与字体" },
+      { id: "settings-detail", settingId: "privacy", icon: ShieldCheck, label: "AI 与隐私" },
+      { id: "settings-detail", settingId: "sync", icon: CloudUpload, label: "云端同步" },
+      { id: "settings-detail", settingId: "export", icon: FileDown, label: "导出与备份" },
     ],
   },
 ];
@@ -111,9 +118,9 @@ export default function App() {
   });
   const [previewPanelsHidden, setPreviewPanelsHidden] = useState(false);
   const [expandedPreviewGroups, setExpandedPreviewGroups] = useState<Record<PreviewNavGroup["id"], boolean>>({
-    capture: true,
-    day: true,
-    profile: true,
+    capture: false,
+    day: false,
+    profile: false,
   });
   const [constellationEntries, setConstellationEntries] = useState(() => {
     const stored = window.localStorage.getItem("lingmu-constellation-entries");
@@ -145,7 +152,16 @@ export default function App() {
   }, []);
 
   const navigate = (page: Page, options?: TransitionOptions) => {
-    if (page === currentPage || transitionLockedRef.current) return;
+    if (transitionLockedRef.current) return;
+
+    const destinationGroup = PREVIEW_NAV.find((group) => group.page === page || group.children.some((child) => child.id === page));
+    setExpandedPreviewGroups({
+      capture: destinationGroup?.id === "capture",
+      day: destinationGroup?.id === "day",
+      profile: destinationGroup?.id === "profile",
+    });
+
+    if (page === currentPage) return;
 
     if (page === "morning-review") setMorningInkStartedAt(Date.now());
 
@@ -157,9 +173,11 @@ export default function App() {
     }
 
     transitionLockedRef.current = true;
-    const kind: PageTransition["kind"] = options?.kind ?? (page === "night-camera" || displayPage === "night-camera" ? "fade" : "push");
+    const kind: PageTransition["kind"] = page === "login" && displayPage !== "login"
+      ? "relaunch"
+      : options?.kind ?? (page === "night-camera" || displayPage === "night-camera" ? "fade" : "push");
     const direction: 1 | -1 = PAGE_ORDER.indexOf(page) >= PAGE_ORDER.indexOf(displayPage) ? 1 : -1;
-    const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 40 : kind === "insight" ? 760 : kind === "fade" ? 220 : 430;
+    const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 40 : kind === "relaunch" ? 880 : kind === "insight" ? 760 : kind === "fade" ? 220 : 430;
     const phoneRect = phoneRef.current?.getBoundingClientRect();
     const bloom = options?.kind === "insight" ? {
       x: options.bloom.viewportX - (phoneRect?.left ?? 0),
@@ -209,7 +227,7 @@ export default function App() {
   };
 
   const fitPreviewToScreen = () => {
-    const reservedWidth = previewPanelsHidden ? 32 : 350;
+    const reservedWidth = previewPanelsHidden ? 32 : 420;
     const fitted = Math.min(1, (window.innerHeight - 32) / 852, (window.innerWidth - reservedWidth) / 393);
     adjustPreviewScale(fitted);
   };
@@ -309,7 +327,7 @@ export default function App() {
           transition: "box-shadow 0.6s ease, transform 0.3s cubic-bezier(.2,.75,.2,1)",
         }}
       >
-        {/* Primary tabs cut directly; camera fades; deeper pages use iOS push/pop. */}
+        {/* Primary tabs cut directly; camera fades; deeper pages push; login relaunches through black. */}
         {pageTransition ? (
           <>
             <div
@@ -320,17 +338,21 @@ export default function App() {
                 zIndex: 10,
                 overflow: "hidden",
                 pointerEvents: "none",
-                opacity: pageTransition.active ? (pageTransition.kind === "fade" || pageTransition.kind === "insight" ? 0 : .88) : 1,
+                opacity: pageTransition.active ? (pageTransition.kind === "fade" || pageTransition.kind === "insight" || pageTransition.kind === "relaunch" ? 0 : .88) : 1,
                 filter: pageTransition.kind === "insight" && pageTransition.active
                   ? "blur(14px) saturate(.76)"
+                  : pageTransition.kind === "relaunch" && pageTransition.active
+                    ? "brightness(0) blur(3px)"
                   : pageTransition.kind === "push" && pageTransition.active ? "brightness(.96) saturate(.96)" : "brightness(1) saturate(1)",
-                transform: pageTransition.duration < 100 || pageTransition.kind === "insight" ? "none" : pageTransition.kind === "fade"
+                transform: pageTransition.duration < 100 || pageTransition.kind === "insight" || pageTransition.kind === "relaunch" ? "none" : pageTransition.kind === "fade"
                   ? (pageTransition.active ? "scale(.99)" : "scale(1)")
                   : pageTransition.active
                     ? `translate3d(${-pageTransition.direction * 24}%, 0, 0) scale(.985)`
                     : "translate3d(0, 0, 0) scale(1)",
                 transition: pageTransition.kind === "insight"
                   ? `opacity 230ms ease 170ms, filter 310ms ease 120ms`
+                  : pageTransition.kind === "relaunch"
+                  ? "opacity 210ms ease, filter 250ms ease"
                   : pageTransition.kind === "fade"
                   ? `transform ${pageTransition.duration}ms ease, opacity ${pageTransition.duration}ms ease`
                   : `transform ${pageTransition.duration}ms cubic-bezier(.32,.72,0,1), opacity ${pageTransition.duration}ms ease, filter ${pageTransition.duration}ms ease`,
@@ -340,6 +362,9 @@ export default function App() {
               {renderPage(pageTransition.from)}
               <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: pageTransition.kind === "push" && pageTransition.active ? "rgba(25,23,22,.035)" : "transparent", transition: `background ${pageTransition.duration}ms ease`, pointerEvents: "none" }} />
             </div>
+            {pageTransition.kind === "relaunch" && (
+              <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 15, background: "#000" }} />
+            )}
             <div
               className="lm-page-layer"
               style={{
@@ -348,9 +373,11 @@ export default function App() {
                 zIndex: 20,
                 overflow: "hidden",
                 pointerEvents: "none",
-                opacity: pageTransition.active ? 1 : (pageTransition.kind === "fade" || pageTransition.kind === "insight" ? 0 : .98),
-                filter: pageTransition.kind === "insight" && !pageTransition.active ? "blur(22px) saturate(.72)" : "blur(0) saturate(1)",
-                transform: pageTransition.duration < 100 || pageTransition.active || pageTransition.kind === "insight"
+                opacity: pageTransition.active ? 1 : (pageTransition.kind === "fade" || pageTransition.kind === "insight" || pageTransition.kind === "relaunch" ? 0 : .98),
+                filter: pageTransition.kind === "insight" && !pageTransition.active
+                  ? "blur(22px) saturate(.72)"
+                  : pageTransition.kind === "relaunch" && !pageTransition.active ? "brightness(0) blur(5px)" : "blur(0) saturate(1)",
+                transform: pageTransition.duration < 100 || pageTransition.active || pageTransition.kind === "insight" || pageTransition.kind === "relaunch"
                   ? "translate3d(0, 0, 0) scale(1)"
                   : pageTransition.kind === "fade"
                     ? "scale(1.01)"
@@ -360,6 +387,8 @@ export default function App() {
                   : "none",
                 transition: pageTransition.kind === "insight"
                   ? `opacity 300ms ease 330ms, filter 340ms cubic-bezier(.2,.72,.2,1) 330ms`
+                  : pageTransition.kind === "relaunch"
+                  ? "opacity 310ms ease 470ms, filter 330ms ease 450ms"
                   : pageTransition.kind === "fade"
                   ? `transform ${pageTransition.duration}ms ease, opacity ${pageTransition.duration}ms ease`
                   : `transform ${pageTransition.duration}ms cubic-bezier(.32,.72,0,1), opacity ${pageTransition.duration}ms ease`,
@@ -369,6 +398,9 @@ export default function App() {
               {renderPage(pageTransition.to)}
               {pageTransition.kind === "push" && <div aria-hidden="true" style={{ position: "absolute", top: 0, bottom: 0, width: 1, [pageTransition.direction === 1 ? "left" : "right"]: 0, background: "rgba(255,255,255,.32)", pointerEvents: "none" }} />}
             </div>
+            {pageTransition.kind === "relaunch" && (
+              <div aria-hidden="true" className="lm-relaunch-curtain" style={{ animationDuration: `${pageTransition.duration}ms` }} />
+            )}
             {pageTransition.kind === "insight" && pageTransition.bloom && (
               <div aria-hidden="true" className="lm-gamecenter-transition">
                 {[
@@ -463,44 +495,13 @@ export default function App() {
 
       {!previewPanelsHidden && (
         <>
-          {/* Preview scale controls — left side */}
-          <aside
-            className="lm-preview-panel lm-preview-scale-panel"
-            style={{ right: `calc(50% + ${393 * previewScale / 2 + 20}px)` }}
-            aria-label="预览尺寸控制"
-          >
-            <span className="lm-preview-eyebrow">预览尺寸</span>
-            <div className="lm-scale-stepper">
-              <button onClick={() => adjustPreviewScale(previewScale - .05)} aria-label="缩小预览"><Minus size={14} /></button>
-              <strong>{Math.round(previewScale * 100)}%</strong>
-              <button onClick={() => adjustPreviewScale(previewScale + .05)} aria-label="放大预览"><Plus size={14} /></button>
-            </div>
-            <input
-              className="lm-scale-slider"
-              type="range"
-              min="55"
-              max="115"
-              step="5"
-              value={Math.round(previewScale * 100)}
-              onChange={(event) => adjustPreviewScale(Number(event.target.value) / 100)}
-              aria-label="预览缩放比例"
-            />
-            <button className="lm-fit-button" onClick={fitPreviewToScreen}>适应屏幕</button>
-            <div className="lm-panel-divider" />
-            <button className="lm-hide-panels" onClick={() => setPreviewPanelsHidden(true)}>
-              <EyeOff size={14} />
-              隐藏侧栏
-            </button>
-          </aside>
-
-          {/* Hierarchical page selector — right side */}
+          {/* Hierarchical page selector and preview controls — right side */}
           <nav
             className="lm-preview-panel lm-preview-tree"
-            style={{ left: `calc(50% + ${393 * previewScale / 2 + 20}px)` }}
+            style={{ left: `calc(50% + ${393 * previewScale / 2 + 38}px)` }}
             aria-label="演示页面导航"
           >
             <span className="lm-preview-eyebrow">页面导航</span>
-            <span className="lm-preview-caption">主界面 · 3</span>
             {PREVIEW_NAV.map((group) => {
               const accent = PREVIEW_ACCENTS[group.accent];
               const groupActive = currentPage === group.page || group.children.some((child) => child.id === currentPage);
@@ -530,13 +531,16 @@ export default function App() {
                     <div className="lm-tree-children">
                       {group.children.map((child) => (
                         <button
-                          key={child.id}
+                          key={`${child.id}-${child.settingId ?? "page"}`}
                           className="lm-tree-child"
-                          onClick={() => navigate(child.id)}
-                          aria-current={currentPage === child.id ? "page" : undefined}
-                          style={currentPage === child.id ? { color: accent.text, background: accent.fill } : undefined}
+                          onClick={() => {
+                            if (child.settingId) setSelectedSettingId(child.settingId);
+                            navigate(child.id);
+                          }}
+                          aria-current={currentPage === child.id && (!child.settingId || selectedSettingId === child.settingId) ? "page" : undefined}
+                          style={currentPage === child.id && (!child.settingId || selectedSettingId === child.settingId) ? { color: accent.text, background: accent.fill } : undefined}
                         >
-                          <span className="lm-tree-node" style={{ borderColor: currentPage === child.id ? accent.text : undefined }} />
+                          <span className="lm-tree-node" style={{ borderColor: currentPage === child.id && (!child.settingId || selectedSettingId === child.settingId) ? accent.text : undefined }} />
                           <SFSymbol icon={child.icon} size={12} strokeWidth={1.65} />
                           <span>{child.label}</span>
                         </button>
@@ -550,6 +554,18 @@ export default function App() {
             <button className="lm-demo-login" onClick={() => navigate("login")} aria-current={currentPage === "login" ? "page" : undefined}>
               <LogIn size={13} />
               登录演示
+            </button>
+            <div className="lm-panel-divider" />
+            <span className="lm-preview-eyebrow">预览尺寸</span>
+            <div className="lm-scale-stepper">
+              <button onClick={() => adjustPreviewScale(previewScale - .05)} aria-label="缩小预览"><Minus size={14} /></button>
+              <strong>{Math.round(previewScale * 100)}%</strong>
+              <button onClick={() => adjustPreviewScale(previewScale + .05)} aria-label="放大预览"><Plus size={14} /></button>
+            </div>
+            <button className="lm-fit-button" onClick={fitPreviewToScreen}>适应屏幕</button>
+            <button className="lm-hide-panels" onClick={() => setPreviewPanelsHidden(true)}>
+              <EyeOff size={14} />
+              隐藏侧栏
             </button>
           </nav>
         </>
@@ -582,15 +598,21 @@ export default function App() {
           letter-spacing: .16em;
           line-height: 1;
         }
-        .lm-preview-caption {
-          margin-top: 3px;
-          color: rgba(255,255,255,.3);
-          font-size: 10px;
+        @keyframes lmRelaunchCurtain {
+          0% { opacity: 0; }
+          18% { opacity: 1; }
+          58% { opacity: 1; }
+          100% { opacity: 0; }
         }
-        .lm-preview-scale-panel {
-          width: 126px;
-          padding: 14px;
-          border-radius: 20px;
+        .lm-relaunch-curtain {
+          position: absolute;
+          inset: 0;
+          z-index: 550;
+          pointer-events: none;
+          background: #000;
+          animation-name: lmRelaunchCurtain;
+          animation-timing-function: cubic-bezier(.42,0,.22,1);
+          animation-fill-mode: both;
         }
         .lm-scale-stepper {
           display: grid;
@@ -618,13 +640,6 @@ export default function App() {
           font-weight: 550;
           font-variant-numeric: tabular-nums;
         }
-        .lm-scale-slider {
-          width: 100%;
-          height: 3px;
-          margin: 14px 0 12px;
-          accent-color: #b9c9d7;
-          cursor: pointer;
-        }
         .lm-fit-button, .lm-hide-panels, .lm-demo-login {
           display: flex;
           width: 100%;
@@ -636,12 +651,12 @@ export default function App() {
           font-size: 11px;
           transition: color .18s ease, background .18s ease;
         }
-        .lm-fit-button { padding: 7px; background: rgba(255,255,255,.06); }
-        .lm-hide-panels { padding: 4px 2px; }
+        .lm-fit-button { margin-top: 9px; padding: 7px; background: rgba(255,255,255,.06); }
+        .lm-hide-panels { margin-top: 6px; padding: 5px 2px; }
         .lm-fit-button:hover, .lm-hide-panels:hover, .lm-demo-login:hover { color: white; background: rgba(255,255,255,.1); }
         .lm-panel-divider { height: 1px; margin: 10px 0; background: rgba(255,255,255,.08); }
         .lm-preview-tree {
-          width: 158px;
+          width: 174px;
           max-height: calc(100vh - 24px);
           overflow: auto;
           padding: 14px 12px;
