@@ -2,25 +2,33 @@ import { useState, useRef, useEffect } from "react";
 import { StarField } from "../components/StarField";
 import { LiquidGlass } from "../components/LiquidGlass";
 import { FloatingTabBar } from "../components/FloatingTabBar";
-import { CalendarDays, Camera, Mic, MoonStar, Send, Sparkles, Square } from "lucide-react";
+import { ArrowUp, CalendarDays, Camera, ChevronDown, Delete, Globe2, Mic, MoonStar, Send, Sparkles, Square } from "lucide-react";
 import { SFSymbol } from "../components/SFSymbol";
 
 type Page = "night-input" | "night-camera" | "profile" | "day-dashboard" | "day-ai";
 
 interface NightInputProps {
   onNavigate: (page: Page) => void;
+  totalEntries: number;
+  onEntrySaved: () => void;
 }
 
 const CONSTELLATION_NAMES = ["", "北极星 α", "参宿四 β", "天狼星 γ", "织女星 δ", "心宿二 ε"];
 
-export function NightInput({ onNavigate }: NightInputProps) {
+export function NightInput({ onNavigate, totalEntries, onEntrySaved }: NightInputProps) {
+  const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [entryCount, setEntryCount] = useState(0);
   const [entries, setEntries] = useState<string[]>([]);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [keyboardMounted, setKeyboardMounted] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [shifted, setShifted] = useState(false);
+  const [activeField, setActiveField] = useState<"title" | "body">("body");
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputPanelRef = useRef<HTMLDivElement>(null);
+  const keyboardRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 393, h: 852 });
 
   useEffect(() => {
@@ -29,17 +37,51 @@ export function NightInput({ onNavigate }: NightInputProps) {
     }
   }, []);
 
+  useEffect(() => {
+    if (keyboardOpen || !keyboardMounted) return;
+    const unmountTimer = window.setTimeout(() => setKeyboardMounted(false), 340);
+    return () => window.clearTimeout(unmountTimer);
+  }, [keyboardMounted, keyboardOpen]);
+
+  const openKeyboard = (field: "title" | "body") => {
+    setActiveField(field);
+    if (keyboardMounted) {
+      setKeyboardOpen(true);
+      return;
+    }
+    setKeyboardMounted(true);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => setKeyboardOpen(true)));
+  };
+
+  const closeKeyboard = () => {
+    setKeyboardOpen(false);
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) activeElement.blur();
+  };
+
+  const updateActiveField = (updater: (current: string) => string) => {
+    if (activeField === "title") setTitle(updater);
+    else setText(updater);
+  };
+
+  const typeKey = (key: string) => {
+    if (key === "backspace") return updateActiveField((current) => current.slice(0, -1));
+    if (key === "space") return updateActiveField((current) => `${current} `);
+    updateActiveField((current) => current + (shifted ? key.toUpperCase() : key));
+    if (shifted) setShifted(false);
+  };
+
   const handleSend = () => {
-    if (!text.trim()) return;
+    if (!title.trim() && !text.trim()) return;
     setIsSending(true);
-    const content = text.trim();
+    const content = [title.trim(), text.trim()].filter(Boolean).join(" · ");
     setTimeout(() => {
       setEntries((prev) => [...prev, content]);
       setEntryCount((c) => c + 1);
+      onEntrySaved();
+      setTitle("");
       setText("");
       setIsSending(false);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
     }, 600);
   };
 
@@ -47,22 +89,28 @@ export function NightInput({ onNavigate }: NightInputProps) {
     if (isRecording) {
       setIsRecording(false);
       if (!text.trim()) {
-        setText("夜风穿过窗边时，像一段没有结尾的旋律。");
+        setText("副歌前空一拍试试，别一下塞太满。");
       }
       return;
     }
     setIsRecording(true);
   };
 
-  const constellationName = CONSTELLATION_NAMES[Math.min(entryCount, 5)] || "";
+  const constellationStage = Math.min(5, Math.floor(totalEntries / 3));
+  const constellationName = CONSTELLATION_NAMES[constellationStage] || "";
 
   return (
     <div
       ref={containerRef}
       className="relative w-full h-full overflow-hidden flex flex-col"
       style={{ background: "linear-gradient(170deg, #0d1b3e 0%, #060c1f 40%, #020408 100%)" }}
+      onPointerDown={(event) => {
+        if (!keyboardMounted) return;
+        const target = event.target as Node;
+        if (!keyboardRef.current?.contains(target) && !inputPanelRef.current?.contains(target)) closeKeyboard();
+      }}
     >
-      <StarField width={dims.w} height={dims.h} entryCount={entryCount} />
+      <StarField width={dims.w} height={dims.h} entryCount={constellationStage} />
 
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: "radial-gradient(ellipse 70% 40% at 50% 30%, rgba(30,60,120,0.25) 0%, transparent 70%)" }}
@@ -110,18 +158,6 @@ export function NightInput({ onNavigate }: NightInputProps) {
         </div>
       )}
 
-      {/* Success toast */}
-      {showSuccess && (
-        <div className="absolute z-30 left-1/2" style={{ top: "35%", transform: "translateX(-50%)", animation: "fadeInUp 0.4s ease" }}>
-          <LiquidGlass mode="night" borderRadius={16} intensity="soft">
-            <div className="flex items-center gap-2" style={{ padding: "8px 16px" }}>
-              <SFSymbol icon={Sparkles} size={14} color="rgba(180,220,255,0.9)" strokeWidth={1.65} />
-              <span style={{ color: "rgba(180,220,255,0.9)", fontSize: 12 }}>已收下，明早见</span>
-            </div>
-          </LiquidGlass>
-        </div>
-      )}
-
       {/* Recent entries */}
       {entries.length > 0 && (
         <div className="absolute z-10 left-4 right-4" style={{ top: "40%", maxHeight: "18%" }}>
@@ -138,21 +174,44 @@ export function NightInput({ onNavigate }: NightInputProps) {
       <div className="flex-1" />
 
       {/* Main Input Area — mb-4 to match px-4 spacing to tab bar */}
-      <div className="relative z-10 px-4 mb-4 shrink-0">
+      <div
+        ref={inputPanelRef}
+        className="relative z-10 px-4 mb-4 shrink-0"
+        style={{
+          transform: keyboardOpen ? "translate3d(0,-216px,0)" : "translate3d(0,0,0)",
+          transition: keyboardOpen
+            ? "transform 360ms cubic-bezier(.32,.72,0,1)"
+            : "transform 320ms cubic-bezier(.32,.72,0,1)",
+          willChange: "transform",
+        }}
+      >
         <LiquidGlass mode="night" borderRadius={22} intensity="medium">
-          <div style={{ padding: "20px 20px 16px 20px" }}>
+          <div style={{ padding: "15px 20px 15px" }}>
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              onFocus={() => openKeyboard("title")}
+              inputMode="none"
+              placeholder="标题"
+              aria-label="灵感标题"
+              style={{ width: "100%", height: 31, background: "transparent", border: "none", outline: "none", color: "rgba(255,255,255,.9)", fontSize: 15, fontWeight: 560, caretColor: "rgba(135,190,255,.95)" }}
+              className="placeholder:text-[rgba(255,255,255,0.26)]"
+            />
+            <div style={{ height: 1, background: "rgba(255,255,255,.075)", margin: "3px 0 8px" }} />
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={isRecording ? "正在听... 再点一次结束" : "把灵感扔进夜空..."}
-              rows={3}
-              style={{ width: "100%", background: "transparent", border: "none", outline: "none", color: "rgba(255,255,255,0.85)", fontSize: 16, lineHeight: 1.7, resize: "none", caretColor: "rgba(120,180,255,0.9)" }}
+              onFocus={() => openKeyboard("body")}
+              inputMode="none"
+              placeholder={isRecording ? "正在听... 再点一次结束" : "随便写两句，没想清楚也行…"}
+              rows={2}
+              style={{ width: "100%", background: "transparent", border: "none", outline: "none", color: "rgba(255,255,255,0.82)", fontSize: 14.5, lineHeight: 1.65, resize: "none", caretColor: "rgba(120,180,255,0.9)" }}
               className="placeholder:text-[rgba(255,255,255,0.3)]"
             />
-            <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "12px 0 14px 0" }} />
-            <div className="flex items-center gap-1.5 mb-3" style={{ color: "rgba(150,190,245,0.46)" }}>
+            <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "8px 0 11px" }} />
+            <div className="flex items-center gap-1.5 mb-2" style={{ color: "rgba(150,190,245,0.46)" }}>
               <SFSymbol icon={MoonStar} size={13} strokeWidth={1.6} />
-              <span style={{ fontSize: 10.5, letterSpacing: 0.2 }}>不用分类，也不用想完整</span>
+              <span style={{ fontSize: 10.5, letterSpacing: 0.2 }}>想到哪写到哪，白天再看它属于哪件事</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -180,16 +239,18 @@ export function NightInput({ onNavigate }: NightInputProps) {
                   {isRecording && <span style={{ fontSize: 10.5 }}>正在听</span>}
                 </button>
               </div>
-              <button onClick={handleSend} disabled={!text.trim()} style={{
+              <button onClick={handleSend} disabled={!title.trim() && !text.trim()} style={{
                 width: 48, height: 48, borderRadius: "50%",
-                background: isSending ? "rgba(60,100,200,0.9)" : text.trim() ? "linear-gradient(135deg, rgba(80,140,255,0.9), rgba(100,80,220,0.9))" : "rgba(60,80,140,0.4)",
+                background: isSending ? "rgba(60,100,200,0.9)" : title.trim() || text.trim() ? "linear-gradient(135deg, rgba(80,140,255,0.9), rgba(100,80,220,0.9))" : "rgba(60,80,140,0.4)",
                 border: "1px solid rgba(120,160,255,0.3)", display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: text.trim() ? "0 0 20px rgba(80,120,255,0.35)" : "none", transition: "all 0.3s", cursor: text.trim() ? "pointer" : "default",
+                boxShadow: title.trim() || text.trim() ? "0 0 20px rgba(80,120,255,0.35)" : "none", transition: "all 0.3s", cursor: title.trim() || text.trim() ? "pointer" : "default",
               }}>
                 {isSending ? (
                   <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.8)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                 ) : (
-                  <SFSymbol icon={Send} size={20} color="white" strokeWidth={1.9} />
+                  <span className="flex items-center justify-center" style={{ width: 22, height: 22, transform: "translate3d(-1px,1px,0)" }}>
+                    <SFSymbol icon={Send} size={20} color="white" strokeWidth={1.9} />
+                  </span>
                 )}
               </button>
             </div>
@@ -200,12 +261,59 @@ export function NightInput({ onNavigate }: NightInputProps) {
       {/* Floating Tab Bar */}
       <FloatingTabBar current="night-input" onNavigate={onNavigate} mode="night" />
 
+      {keyboardMounted && (
+        <div
+          ref={keyboardRef}
+          aria-hidden={!keyboardOpen}
+          className="absolute left-0 right-0 bottom-0"
+          onPointerDown={(event) => event.stopPropagation()}
+          style={{
+            zIndex: 160,
+            padding: "7px 6px 17px",
+            background: "rgba(43,43,44,.99)",
+            boxShadow: keyboardOpen ? "0 -12px 32px rgba(0,0,0,.38)" : "none",
+            transform: keyboardOpen ? "translate3d(0,0,0)" : "translate3d(0,102%,0)",
+            transition: keyboardOpen
+              ? "transform 360ms cubic-bezier(.32,.72,0,1), box-shadow 280ms ease"
+              : "transform 320ms cubic-bezier(.32,.72,0,1), box-shadow 220ms ease",
+            willChange: "transform",
+          }}
+        >
+          <div className="flex items-center overflow-hidden" style={{ height: 37, padding: "0 4px 6px", color: "white", fontSize: 16 }}>
+            <div className="flex flex-1 items-center justify-around">
+              {["我", "你", "这", "但是", "哎", "还", "这个", "那", "感觉"].map((word) => <button key={word} onClick={() => updateActiveField((current) => current + word)} style={{ minWidth: 25, color: "rgba(255,255,255,.96)" }}>{word}</button>)}
+            </div>
+            <button aria-label="收起键盘" onClick={closeKeyboard} className="flex items-center justify-center" style={{ width: 34, height: 30, color: "white", borderLeft: "1px solid rgba(255,255,255,.11)" }}><SFSymbol icon={ChevronDown} size={22} strokeWidth={2} /></button>
+          </div>
+
+          {["qwertyuiop", "asdfghjkl"].map((row, rowIndex) => (
+            <div key={row} className="flex justify-center" style={{ gap: 5, marginTop: rowIndex ? 7 : 0, padding: rowIndex ? "0 20px" : 0 }}>
+              {[...row].map((key) => <button key={key} onClick={() => typeKey(key)} className="flex items-center justify-center" style={{ flex: 1, height: 43, maxWidth: 36, borderRadius: 6, background: "linear-gradient(180deg, #7c7c7d, #686869)", color: "white", fontSize: 22, textTransform: shifted ? "uppercase" : "lowercase", boxShadow: "0 1.5px 0 rgba(0,0,0,.78), inset 0 1px rgba(255,255,255,.08)" }}>{shifted ? key.toUpperCase() : key}</button>)}
+            </div>
+          ))}
+
+          <div className="flex items-center" style={{ gap: 5, marginTop: 7 }}>
+            <button aria-label="大写" onClick={() => setShifted((current) => !current)} className="flex items-center justify-center" style={{ width: 45, height: 43, borderRadius: 6, background: shifted ? "#9b9b9d" : "linear-gradient(180deg, #575759, #49494b)", color: "white", boxShadow: "0 1.5px 0 rgba(0,0,0,.82)" }}><SFSymbol icon={ArrowUp} size={22} strokeWidth={2.1} /></button>
+            {[..."zxcvbnm"].map((key) => <button key={key} onClick={() => typeKey(key)} className="flex items-center justify-center" style={{ flex: 1, height: 43, borderRadius: 6, background: "linear-gradient(180deg, #7c7c7d, #686869)", color: "white", fontSize: 22, boxShadow: "0 1.5px 0 rgba(0,0,0,.78), inset 0 1px rgba(255,255,255,.08)" }}>{shifted ? key.toUpperCase() : key}</button>)}
+            <button aria-label="退格" onClick={() => typeKey("backspace")} className="flex items-center justify-center" style={{ width: 45, height: 43, borderRadius: 6, background: "linear-gradient(180deg, #575759, #49494b)", color: "white", boxShadow: "0 1.5px 0 rgba(0,0,0,.82)" }}><SFSymbol icon={Delete} size={22} strokeWidth={1.9} /></button>
+          </div>
+
+          <div className="flex items-center" style={{ gap: 6, marginTop: 8 }}>
+            <button style={{ width: 46, height: 43, borderRadius: 6, background: "linear-gradient(180deg, #575759, #49494b)", color: "white", fontSize: 17, boxShadow: "0 1.5px 0 rgba(0,0,0,.82)" }}>123</button>
+            <button aria-label="表情" className="flex items-center justify-center" style={{ width: 46, height: 43, borderRadius: 6, background: "linear-gradient(180deg, #575759, #49494b)", color: "white", fontSize: 20, boxShadow: "0 1.5px 0 rgba(0,0,0,.82)" }}>☺</button>
+            <button onClick={() => typeKey("space")} style={{ flex: 1, height: 43, borderRadius: 6, background: "linear-gradient(180deg, #7c7c7d, #686869)", color: "white", fontSize: 17, boxShadow: "0 1.5px 0 rgba(0,0,0,.78)" }}>空格</button>
+            <button onClick={closeKeyboard} style={{ width: 82, height: 43, borderRadius: 6, background: title.trim() || text.trim() ? "#596F8E" : "linear-gradient(180deg, #575759, #49494b)", color: title.trim() || text.trim() ? "white" : "rgba(255,255,255,.34)", fontSize: 17, boxShadow: "0 1.5px 0 rgba(0,0,0,.82)" }}>完成</button>
+          </div>
+
+          <div className="flex items-center justify-between" style={{ height: 34, padding: "9px 23px 0", color: "rgba(255,255,255,.88)" }}>
+            <SFSymbol icon={Globe2} size={20} strokeWidth={1.7} />
+            <SFSymbol icon={Mic} size={20} strokeWidth={1.7} />
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
         textarea::placeholder { color: rgba(255,255,255,0.28); }
       `}</style>
     </div>

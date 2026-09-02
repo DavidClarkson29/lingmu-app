@@ -43,7 +43,7 @@ export function NightCamera({ onNavigate }: NightCameraProps) {
           </svg>
         </button>
         <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 16, fontWeight: 500, letterSpacing: 0.5 }}>
-          捕捉灵感
+          拍一下
         </span>
         <button className="transition-opacity hover:opacity-70">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -73,7 +73,7 @@ export function NightCamera({ onNavigate }: NightCameraProps) {
             }}
           >
             <SFSymbol icon={captureSaved ? Check : MoonStar} size={12} strokeWidth={1.65} />
-            {captureSaved ? "已收下，明早整理" : "只管捕捉，不必整理"}
+            {captureSaved ? "存好了" : "先拍下来，别管它是什么"}
           </span>
         </LiquidGlass>
       </div>

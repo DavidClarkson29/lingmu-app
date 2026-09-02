@@ -342,7 +342,7 @@ export function DayDashboard({ ideas, onNavigate, onOpenIdea, onOpenInsight, onD
                   } as CSSProperties}
                 >
                   <span aria-hidden="true" className="absolute" style={{ left: 1, top: 16, width: 5, height: 5, borderRadius: "50%", background: bubble.color, opacity: .82, boxShadow: `0 4px 9px ${bubble.color}45` }} />
-                  <span style={{ marginLeft: 14, color: "rgba(35,37,36,.87)", fontFamily: 'Songti SC, STSong, Noto Serif SC, serif', fontSize: bubble.fontSize, fontWeight: 500, lineHeight: 1.12, letterSpacing: -.25, whiteSpace: "nowrap", textShadow: "0 5px 14px rgba(47,44,39,.07)" }}>{bubble.label}</span>
+                  <span style={{ marginLeft: 14, color: "rgba(35,37,36,.87)", fontFamily: 'Songti SC, STSong, Noto Serif SC, serif', fontSize: bubble.fontSize, fontWeight: 500, lineHeight: 1.12, letterSpacing: -.25, whiteSpace: "nowrap", textShadow: "0 6px 14px rgba(47,44,39,.075)" }}>{bubble.label}</span>
                   <span aria-hidden="true" style={{ display: "block", marginLeft: 14, marginTop: 5, width: bubble.lineWidth, height: 1, borderRadius: 1, background: bubble.color, opacity: .62, boxShadow: `0 4px 8px ${bubble.color}28` }} />
                   <span style={{ marginLeft: 14, marginTop: 5, color: "rgba(39,41,40,.34)", fontSize: 9.5, lineHeight: 1, whiteSpace: "nowrap", letterSpacing: .2 }}>{bubble.count}</span>
                 </div>

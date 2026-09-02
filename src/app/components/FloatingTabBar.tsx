@@ -12,11 +12,12 @@ interface FloatingTabBarProps {
 export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProps) {
   const isNight = mode === "night";
   const isNightInput = current === "night-input";
-  const activeColor = isNight ? "rgba(160,200,255,1)" : "#557486";
-  const inactiveColor = isNight ? "rgba(255,255,255,0.35)" : "rgba(69,68,64,0.32)";
   const nightActive = current === "night-input" || current === "night-camera";
   const profileActive = current === "profile";
   const dayActive = current === "day-dashboard" || current === "day-ai";
+  const nightColor = nightActive ? (isNight ? "#A7C9F3" : "#6787A6") : (isNight ? "rgba(151,185,226,.4)" : "rgba(83,116,145,.34)");
+  const profileColor = profileActive ? (isNight ? "#C3ACCE" : "#87738F") : (isNight ? "rgba(190,165,199,.36)" : "rgba(126,103,137,.32)");
+  const dayColor = dayActive ? (isNight ? "#E1BD77" : "#B3853E") : (isNight ? "rgba(222,185,111,.36)" : "rgba(167,123,54,.32)");
 
   return (
     <div className="shrink-0 flex flex-col items-center" style={{ paddingBottom: 23 }}>
@@ -68,11 +69,11 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
             className="flex flex-col items-center gap-0.5"
             style={{ padding: "4px 16px" }}
           >
-            <SFSymbol icon={Moon} size={24} color={nightActive ? activeColor : inactiveColor} strokeWidth={1.65} fill={nightActive ? activeColor : "none"} style={{ transition: "all 0.3s" }} />
+            <SFSymbol icon={Moon} size={24} color={nightColor} strokeWidth={1.65} fill={nightActive ? nightColor : "none"} style={{ transition: "all 0.3s" }} />
             <div
               style={{
                 width: 4, height: 4, borderRadius: "50%",
-                background: nightActive ? activeColor : "transparent",
+                background: nightActive ? nightColor : "transparent",
                 transition: "background 0.3s",
               }}
             />
@@ -84,11 +85,11 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
             className="flex flex-col items-center gap-0.5"
             style={{ padding: "4px 16px" }}
           >
-            <SFSymbol icon={UserRound} size={24} color={profileActive ? activeColor : inactiveColor} strokeWidth={1.65} style={{ transition: "all 0.3s" }} />
+            <SFSymbol icon={UserRound} size={24} color={profileColor} strokeWidth={1.65} style={{ transition: "all 0.3s" }} />
             <div
               style={{
                 width: 4, height: 4, borderRadius: "50%",
-                background: profileActive ? activeColor : "transparent",
+                background: profileActive ? profileColor : "transparent",
                 transition: "background 0.3s",
               }}
             />
@@ -100,11 +101,11 @@ export function FloatingTabBar({ current, onNavigate, mode }: FloatingTabBarProp
             className="flex flex-col items-center gap-0.5"
             style={{ padding: "4px 16px" }}
           >
-            <SFSymbol icon={Sun} size={24} color={dayActive ? activeColor : inactiveColor} strokeWidth={1.65} style={{ transition: "all 0.3s" }} />
+            <SFSymbol icon={Sun} size={24} color={dayColor} strokeWidth={1.65} style={{ transition: "all 0.3s" }} />
             <div
               style={{
                 width: 4, height: 4, borderRadius: "50%",
-                background: dayActive ? activeColor : "transparent",
+                background: dayActive ? dayColor : "transparent",
                 transition: "background 0.3s",
               }}
             />

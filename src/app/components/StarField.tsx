@@ -9,6 +9,16 @@ interface Star {
   twinkleOffset: number;
 }
 
+interface Meteor {
+  startX: number;
+  startY: number;
+  angle: number;
+  length: number;
+  speed: number;
+  startedAt: number;
+  duration: number;
+}
+
 interface ConstellationStar {
   x: number;
   y: number;
@@ -139,6 +149,24 @@ export function StarField({
     if (!ctx) return;
 
     let t = 0;
+    let meteor: Meteor | null = null;
+    let nextMeteorAt = 2.2 + Math.random() * 4.8;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const scheduleNextMeteor = () => {
+      // Deliberately irregular: enough silence between passes to keep them surprising.
+      nextMeteorAt = t + 5.5 + Math.random() * 12;
+    };
+
+    const createMeteor = (): Meteor => ({
+      startX: width * (0.04 + Math.random() * 0.5),
+      startY: height * (0.08 + Math.random() * 0.27),
+      angle: (18 + Math.random() * 16) * (Math.PI / 180),
+      length: 44 + Math.random() * 34,
+      speed: 210 + Math.random() * 90,
+      startedAt: t,
+      duration: 0.72 + Math.random() * 0.38,
+    });
 
     function draw() {
       if (!ctx || !canvas) return;
@@ -146,6 +174,7 @@ export function StarField({
       t += 0.016;
 
       const activeGroup = Math.min(entryCount, 5);
+      const constellationOffsetY = Math.min(46, height * 0.052);
 
       // Animate reveal progress
       for (let g = 0; g <= 5; g++) {
@@ -162,6 +191,48 @@ export function StarField({
         ctx.fillStyle = `rgba(180, 200, 240, ${star.opacity * twinkle})`;
         ctx.fill();
       });
+
+      // A restrained, single-stroke meteor with a genuinely irregular cadence.
+      if (!reduceMotion && !meteor && t >= nextMeteorAt) {
+        meteor = createMeteor();
+      }
+
+      if (meteor) {
+        const progress = (t - meteor.startedAt) / meteor.duration;
+        if (progress >= 1) {
+          meteor = null;
+          scheduleNextMeteor();
+        } else {
+          const dx = Math.cos(meteor.angle);
+          const dy = Math.sin(meteor.angle);
+          const distance = meteor.speed * (t - meteor.startedAt);
+          const headX = meteor.startX + dx * distance;
+          const headY = meteor.startY + dy * distance;
+          const reveal = Math.min(1, progress / 0.18);
+          const fade = Math.min(1, (1 - progress) / 0.22);
+          const alpha = reveal * fade;
+          const visibleLength = meteor.length * (0.35 + reveal * 0.65);
+          const tailX = headX - dx * visibleLength;
+          const tailY = headY - dy * visibleLength;
+          const trail = ctx.createLinearGradient(tailX, tailY, headX, headY);
+          trail.addColorStop(0, "rgba(174, 207, 246, 0)");
+          trail.addColorStop(0.72, `rgba(190, 220, 252, ${0.34 * alpha})`);
+          trail.addColorStop(1, `rgba(237, 247, 255, ${0.9 * alpha})`);
+
+          ctx.beginPath();
+          ctx.moveTo(tailX, tailY);
+          ctx.lineTo(headX, headY);
+          ctx.strokeStyle = trail;
+          ctx.lineWidth = 0.75;
+          ctx.lineCap = "round";
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(headX, headY, 1.05, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(241, 249, 255, ${0.72 * alpha})`;
+          ctx.fill();
+        }
+      }
 
       // Draw bonus stars (fade in)
       bonusStarsRef.current.forEach((star) => {
@@ -198,9 +269,9 @@ export function StarField({
         const from = CONSTELLATION_STARS[line.from];
         const to = CONSTELLATION_STARS[line.to];
         const fx = from.x * width;
-        const fy = from.y * height;
+        const fy = from.y * height + constellationOffsetY;
         const tx = to.x * width;
-        const ty = to.y * height;
+        const ty = to.y * height + constellationOffsetY;
 
         // Animated line draw
         const ex = fx + (tx - fx) * progress;
@@ -220,7 +291,7 @@ export function StarField({
         if (progress < 0.01) return;
 
         const x = star.x * width;
-        const y = star.y * height;
+        const y = star.y * height + constellationOffsetY;
         const twinkle = Math.sin(t * 0.8 + i * 0.7) * 0.2 + 0.8;
         const alpha = progress * twinkle;
 

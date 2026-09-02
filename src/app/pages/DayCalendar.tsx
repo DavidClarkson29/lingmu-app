@@ -18,55 +18,64 @@ const CALENDAR_DAYS = [
   [30, 31, null, null, null, null, null],
 ];
 
-const RECORD_DAYS = new Set([3, 5, 7, 10, 11, 14, 15, 17, 20, 22, 25]);
+const RECORD_DAYS = new Set([3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 20, 22, 25]);
 
 const RECORDS_DB: Record<number, { time: string; title: string; type: string; mood: string }[]> = {
-  3: [{ time: "22:30", title: "雨天的咖啡香味", type: "文字", mood: "平静" }],
-  5: [{ time: "23:10", title: "街角的霓虹灯光", type: "图片", mood: "好奇" }],
+  3: [{ time: "22:30", title: "小片最后放空房间", type: "文字", mood: "想拍" }],
+  5: [{ time: "23:10", title: "字宽跟鼓点试了一下", type: "图片", mood: "试试" }],
+  6: [{ time: "01:26", title: "结尾别回主和弦了", type: "文字", mood: "喜欢" }],
   7: [
-    { time: "21:45", title: "老唱片里的旋律", type: "文字", mood: "怀念" },
-    { time: "23:20", title: "窗外的月色", type: "文字", mood: "平静" },
+    { time: "21:45", title: "天气卡片别用渐变了", type: "文字", mood: "卡住" },
+    { time: "23:20", title: "城市名再小一点", type: "文字", mood: "试试" },
   ],
-  10: [{ time: "20:10", title: "植物园的光影", type: "图片", mood: "愉悦" }],
-  11: [
-    { time: "22:50", title: "深夜电台的独白", type: "文字", mood: "感伤" },
-    { time: "23:40", title: "星空下的思考", type: "文字", mood: "沉思" },
+  8: [{ time: "23:17", title: "第二遍副歌轨道也太满了", type: "图片", mood: "卡住" }],
+  9: [{ time: "22:44", title: "这个 pad 太像预设了", type: "图片", mood: "卡住" }],
+  10: [{ time: "20:10", title: "楼梯的光晚上十点最好", type: "图片", mood: "想拍" }],
+  11: [{ time: "23:19", title: "天气开屏要不要一点低频", type: "语音", mood: "试试" }],
+  12: [
+    { time: "00:32", title: "副歌叠一轨气声试试", type: "语音", mood: "试试" },
+    { time: "23:36", title: "主歌就这三个音吧", type: "语音", mood: "喜欢" },
   ],
-  14: [
-    { time: "19:30", title: "日落时分的海面", type: "图片", mood: "感动" },
-    { time: "21:15", title: "关于时间的碎片", type: "文字", mood: "沉思" },
-    { time: "23:55", title: "夜风的温度", type: "文字", mood: "平静" },
+  13: [
+    { time: "00:21", title: "鼓组进来前留两拍", type: "语音", mood: "试试" },
+    { time: "01:08", title: "副歌和弦先别急着亮", type: "文字", mood: "琢磨" },
   ],
-  15: [{ time: "22:00", title: "城市天际线", type: "图片", mood: "震撼" }],
+  14: [{ time: "22:41", title: "小片横移再慢一点", type: "语音", mood: "试试" }],
+  15: [{ time: "18:26", title: "跟踪蒙版居然没飘", type: "图片", mood: "有点爽" }],
+  16: [
+    { time: "00:14", title: "字动的时候贝斯晚点进", type: "语音", mood: "卡住" },
+    { time: "23:06", title: "这个反光放片尾", type: "图片", mood: "想拍" },
+  ],
   17: [
-    { time: "21:30", title: "夜空下的宁静", type: "图片", mood: "平静" },
-    { time: "22:15", title: "光与影的交错", type: "图片", mood: "好奇" },
-    { time: "23:42", title: "城市的呼吸节奏", type: "文字", mood: "沉思" },
-    { time: "23:58", title: "深夜灵感闪现", type: "文字", mood: "兴奋" },
+    { time: "21:47", title: "便利店这块蓝接在后面", type: "图片", mood: "喜欢" },
+    { time: "22:15", title: "楼梯这块光能当开头", type: "图片", mood: "想拍" },
+    { time: "22:58", title: "天气小工具开屏先别复杂", type: "文字", mood: "试试" },
+    { time: "23:42", title: "片名字体还是太乖了", type: "文字", mood: "卡住" },
+    { time: "23:58", title: "小片的鼓点先这样", type: "语音", mood: "兴奋" },
   ],
   20: [
-    { time: "20:45", title: "雾中的路灯", type: "图片", mood: "神秘" },
-    { time: "22:30", title: "旧书页的味道", type: "文字", mood: "怀念" },
+    { time: "20:45", title: "下雨状态别做那么蓝", type: "图片", mood: "卡住" },
+    { time: "22:30", title: "片名也许放最后才出现", type: "文字", mood: "试试" },
   ],
-  22: [{ time: "21:00", title: "春分时节的风", type: "文字", mood: "愉悦" }],
+  22: [{ time: "21:00", title: "字还是动太快了", type: "文字", mood: "卡住" }],
   25: [
-    { time: "23:15", title: "关于梦境的笔记", type: "文字", mood: "沉思" },
-    { time: "23:50", title: "凌晨前的宁静", type: "文字", mood: "平静" },
+    { time: "23:15", title: "夜路小片粗剪 01", type: "文字", mood: "兴奋" },
+    { time: "23:50", title: "环境声太干净了", type: "语音", mood: "卡住" },
   ],
 };
 
 // Mood categories with Apple-style colors
 const MOOD_CATEGORIES = [
-  { key: "感性", moods: ["平静", "感伤", "感动", "怀念"], color: "#34AADC", label: "感性" },
-  { key: "理性", moods: ["沉思", "好奇"], color: "#FF9500", label: "理性" },
-  { key: "能量", moods: ["兴奋", "愉悦", "震撼", "神秘"], color: "#4CD964", label: "能量" },
+  { key: "感觉", moods: ["平静", "感伤", "感动", "怀念", "喜欢", "想拍"], color: "#739BB2", label: "感觉" },
+  { key: "琢磨", moods: ["沉思", "好奇", "卡住", "试试", "琢磨"], color: "#B48A55", label: "琢磨" },
+  { key: "来劲", moods: ["兴奋", "愉悦", "震撼", "神秘", "有点爽"], color: "#73977C", label: "来劲" },
 ];
 
 function getMoodCategory(mood: string): string {
   for (const cat of MOOD_CATEGORIES) {
     if (cat.moods.includes(mood)) return cat.key;
   }
-  return "感性";
+  return "感觉";
 }
 
 function getCategoryColor(catKey: string): string {
@@ -103,6 +112,12 @@ const MOOD_COLORS: Record<string, string> = {
   "震撼": "rgba(200,120,100,0.8)",
   "神秘": "rgba(140,130,200,0.8)",
   "兴奋": "rgba(220,180,80,0.8)",
+  "喜欢": "rgba(101,145,171,0.8)",
+  "想拍": "rgba(110,153,176,0.8)",
+  "试试": "rgba(128,155,116,0.8)",
+  "卡住": "rgba(177,126,93,0.8)",
+  "有点爽": "rgba(108,157,126,0.8)",
+  "琢磨": "rgba(176,133,79,0.8)",
 };
 
 export function DayCalendar({ onNavigate }: DayCalendarProps) {
@@ -186,7 +201,7 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
                   {[
                     { value: "11", label: "活跃天", color: "#597687" },
                     { value: "22", label: "灵感", color: "#B1843F" },
-                    { value: "沉思", label: "主要情绪", color: "#85708E" },
+                    { value: "想拍", label: "最常出现", color: "#85708E" },
                     { value: "22h", label: "高峰", color: "#6F8D79" },
                   ].map((item) => (
                     <div key={item.label} style={{ minWidth: 0 }}>
@@ -207,7 +222,7 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
             <div style={{ padding: "15px 16px 13px" }}>
               {/* Title + total */}
               <div className="flex items-start justify-between mb-3">
-                <div><div style={{ color: "var(--lm-day-blue)", fontSize: 14, fontWeight: 550 }}>思维活跃度</div><div style={{ color: "rgba(55,58,57,0.36)", fontSize: 11, marginTop: 3 }}>3月{selectedDay}日 · 19:00—00:00</div></div>
+                <div><div style={{ color: "var(--lm-day-blue)", fontSize: 14, fontWeight: 550 }}>晚上记了几条</div><div style={{ color: "rgba(55,58,57,0.36)", fontSize: 11, marginTop: 3 }}>3月{selectedDay}日 · 19:00—00:00</div></div>
                 <div className="flex items-baseline gap-1" style={{ color: "var(--lm-day-gold)" }}>
                   <span style={{ fontSize: 24, fontWeight: 620, lineHeight: 1 }}>{records.length}</span>
                   <span style={{ fontSize: 11, fontWeight: 500 }}>条记录</span>
@@ -315,8 +330,8 @@ export function DayCalendar({ onNavigate }: DayCalendarProps) {
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 8, opacity: 0.3 }}>
                   <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" fill="none" />
                 </svg>
-                <span style={{ color: "rgba(0,0,0,0.25)", fontSize: "var(--lm-type-body)" }}>这天还没有灵感记录</span>
-                <span style={{ color: "rgba(0,0,0,0.18)", fontSize: "var(--lm-type-support)", marginTop: 5 }}>夜间模式下捕捉你的灵感吧</span>
+                <span style={{ color: "rgba(0,0,0,0.25)", fontSize: "var(--lm-type-body)" }}>这天没记东西</span>
+                <span style={{ color: "rgba(0,0,0,0.18)", fontSize: "var(--lm-type-support)", marginTop: 5 }}>有想法再记，不用补</span>
               </div>
             </LiquidGlass>
           ) : (

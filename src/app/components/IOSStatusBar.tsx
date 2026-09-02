@@ -14,109 +14,92 @@ export function IOSStatusBar({ mode }: IOSStatusBarProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingLeft: 34,
-        paddingRight: 28,
-        paddingTop: 8,
+        paddingRight: 35,
+        paddingTop: 7,
         position: "relative",
         zIndex: 50,
         flexShrink: 0,
       }}
     >
       {/* Time - iOS SF style */}
-      <span
-        style={{
-          color: fgOp,
-          fontSize: 16,
-          fontWeight: 600,
-          letterSpacing: 0.2,
-          fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        9:41
-      </span>
-
-      {/* Spacer */}
-      <div style={{ width: 100, flexShrink: 0 }} />
+      <div className="flex items-center" style={{ position: "absolute", left: 77, transform: "translateX(-50%)" }}>
+        <span
+          style={{
+            color: fgOp,
+            fontSize: 16.5,
+            lineHeight: 1,
+            fontWeight: 650,
+            letterSpacing: -0.35,
+            fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          1:59
+        </span>
+      </div>
 
       {/* Right: Cellular + Wi-Fi + Battery — iOS status indicators */}
-      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        {/* Cellular — four ascending rounded bars */}
+      <div style={{ display: "flex", alignItems: "center", gap: 7.5, marginLeft: "auto" }}>
+        {/* Dual-line cellular indicator, matching current iOS compact status glyph. */}
         <svg
           aria-hidden="true"
-          width="18"
-          height="12"
-          viewBox="0 0 18 12"
+          width="20"
+          height="14"
+          viewBox="0 0 20 14"
           style={{ display: "block", flexShrink: 0 }}
         >
-          <rect x="0" y="9" width="3" height="3" rx="0.8" fill={fg} opacity="0.48" />
-          <rect x="5" y="6" width="3" height="6" rx="0.8" fill={fg} opacity="0.68" />
-          <rect x="10" y="3" width="3" height="9" rx="0.8" fill={fg} opacity="0.88" />
-          <rect x="15" y="0" width="3" height="12" rx="0.8" fill={fg} />
+          {[0, 1, 2, 3].map((column) => (
+            <g key={column} opacity={column < 2 ? 1 : column === 2 ? .36 : .2}>
+              <rect x={column * 5} y={1 + (3 - column) * .45} width="3.6" height="5.1" rx="1.15" fill={fg} />
+              <rect x={column * 5} y="8.2" width="3.6" height="5.1" rx="1.15" fill={fg} />
+            </g>
+          ))}
         </svg>
 
-        {/* Wi-Fi — every stroke stays inside the viewBox to prevent clipping */}
+        {/* Wi-Fi — solid stepped bands match the compact iOS status glyph. */}
         <svg
           aria-hidden="true"
-          width="17"
-          height="12"
-          viewBox="0 0 17 12"
-          style={{ display: "block", flexShrink: 0, overflow: "visible" }}
+          width="20"
+          height="14"
+          viewBox="0 3 24 18"
+          style={{ display: "block", flexShrink: 0 }}
         >
           <path
-            d="M1.05 3.45C5.18 0.05 11.82 0.05 15.95 3.45"
-            stroke={fg}
-            strokeWidth="1.65"
-            strokeLinecap="round"
-            fill="none"
+            d="M1.05 8.72 3.2 10.86C8.08 6.04 15.92 6.04 20.8 10.86l2.15-2.14C16.88 2.7 7.12 2.7 1.05 8.72Zm4.28 4.27 2.14 2.15a6.43 6.43 0 0 1 9.06 0l2.14-2.15c-3.69-3.67-9.65-3.67-13.34 0Zm4.3 4.28L12 19.64l2.37-2.37a3.35 3.35 0 0 0-4.74 0Z"
+            fill={fg}
           />
-          <path
-            d="M3.75 6.65C6.39 4.42 10.61 4.42 13.25 6.65"
-            stroke={fg}
-            strokeWidth="1.65"
-            strokeLinecap="round"
-            fill="none"
-          />
-          <path
-            d="M6.42 9.52C7.59 8.53 9.41 8.53 10.58 9.52"
-            stroke={fg}
-            strokeWidth="1.65"
-            strokeLinecap="round"
-            fill="none"
-          />
-          <circle cx="8.5" cy="11" r="0.85" fill={fg} />
         </svg>
 
         {/* Battery — rounded outline, charge fill and terminal */}
         <svg
           aria-hidden="true"
-          width="27"
-          height="13"
-          viewBox="0 0 27 13"
+          width="29"
+          height="14"
+          viewBox="0 0 29 14"
           style={{ display: "block", flexShrink: 0 }}
         >
           <rect
-            x="0.5"
-            y="0.5"
-            width="22"
-            height="12"
-            rx="3.25"
+            x="0.6"
+            y="0.6"
+            width="24"
+            height="12.8"
+            rx="3.6"
             stroke={fg}
             strokeWidth="1"
             fill="none"
             opacity={isNight ? 0.42 : 0.38}
           />
           <rect
-            x="2"
-            y="2"
-            width="18.5"
-            height="9"
-            rx="2.15"
+            x="2.2"
+            y="2.2"
+            width="19.6"
+            height="9.6"
+            rx="2.3"
             fill={fg}
             opacity={isNight ? 0.94 : 0.92}
           />
           <path
-            d="M24 4.25c.72.25 1.2.94 1.2 1.75v1c0 .81-.48 1.5-1.2 1.75Z"
+            d="M26 4.45c.78.27 1.28 1 1.28 1.84v1.42c0 .84-.5 1.57-1.28 1.84Z"
             fill={fg}
             opacity={isNight ? 0.5 : 0.42}
           />
