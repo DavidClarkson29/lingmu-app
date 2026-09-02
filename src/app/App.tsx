@@ -99,6 +99,13 @@ const PREVIEW_ACCENTS = {
   violet: { fill: "rgba(134,113,163,.22)", border: "rgba(174,150,205,.30)", text: "#d1b9e7" },
 } as const;
 
+function getFittedPreviewScale() {
+  const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+  const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+  const fitted = Math.min(1, (viewportHeight - 48) / 852, (viewportWidth - 28) / 393);
+  return Math.min(1, Math.max(.35, Math.floor(fitted * 20) / 20));
+}
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("night-input");
   const [displayPage, setDisplayPage] = useState<Page>("night-input");
@@ -112,10 +119,7 @@ export default function App() {
   const [loginHandoff, setLoginHandoff] = useState(false);
   const [profile, setProfile] = useState<LingmuProfile>({ name: "灵沐", bio: "做设计，也玩点声音和影像", avatarUrl: "" });
   const [selectedSettingId, setSelectedSettingId] = useState<SettingId>("capture");
-  const [previewScale, setPreviewScale] = useState(() => {
-    const stored = Number(window.localStorage.getItem("lingmu-preview-scale"));
-    return stored >= .55 && stored <= 1.15 ? stored : 1;
-  });
+  const [previewScale, setPreviewScale] = useState(getFittedPreviewScale);
   const [previewPanelsHidden, setPreviewPanelsHidden] = useState(false);
   const [expandedPreviewGroups, setExpandedPreviewGroups] = useState<Record<PreviewNavGroup["id"], boolean>>({
     capture: false,
@@ -144,8 +148,9 @@ export default function App() {
   }, [constellationEntries]);
 
   useEffect(() => {
-    window.localStorage.setItem("lingmu-preview-scale", String(previewScale));
-  }, [previewScale]);
+    const frame = window.requestAnimationFrame(() => setPreviewScale(getFittedPreviewScale()));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => () => {
     if (transitionTimerRef.current !== null) window.clearTimeout(transitionTimerRef.current);
@@ -223,13 +228,11 @@ export default function App() {
   };
 
   const adjustPreviewScale = (nextScale: number) => {
-    setPreviewScale(Math.min(1.15, Math.max(.55, Math.round(nextScale * 20) / 20)));
+    setPreviewScale(Math.min(1.15, Math.max(.35, Math.round(nextScale * 20) / 20)));
   };
 
   const fitPreviewToScreen = () => {
-    const reservedWidth = previewPanelsHidden ? 32 : 420;
-    const fitted = Math.min(1, (window.innerHeight - 32) / 852, (window.innerWidth - reservedWidth) / 393);
-    adjustPreviewScale(fitted);
+    setPreviewScale(getFittedPreviewScale());
   };
 
   const renderPage = (page: Page) => {
@@ -302,8 +305,12 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center"
+      className="w-full"
       style={{
+        height: "100dvh",
+        minHeight: 0,
+        position: "relative",
+        overflow: "hidden",
         background: isNightPage
           ? "linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 50%, #050510 100%)"
           : "#D8D2C8",
@@ -313,16 +320,19 @@ export default function App() {
       {/* iPhone 15 Pro Frame — 393×852 */}
       <div
         ref={phoneRef}
+        data-lm-phone
         style={{
           width: 393,
           height: 852,
           borderRadius: 55,
           overflow: "hidden",
-          position: "relative",
+          position: "absolute",
+          left: "50%",
+          top: "50%",
           boxShadow: isNightPage
             ? "0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05)"
             : "0 30px 80px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.12)",
-          transform: `scale(${previewScale})`,
+          transform: `translate(-50%, -50%) scale(${previewScale})`,
           transformOrigin: "center center",
           transition: "box-shadow 0.6s ease, transform 0.3s cubic-bezier(.2,.75,.2,1)",
         }}
@@ -754,6 +764,12 @@ export default function App() {
           transition: color .18s ease, background .18s ease;
         }
         .lm-restore-panels:hover { color: white; background: rgba(24,25,31,.7); }
+        @media (max-width: 760px) {
+          .lm-preview-tree {
+            left: auto !important;
+            right: 10px;
+          }
+        }
         @keyframes lmLoginHandoffDissolve {
           0% { opacity: 1; transform: scale(1); backdrop-filter: blur(15px) saturate(.82); }
           38% { opacity: .88; }
